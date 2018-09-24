@@ -12,15 +12,17 @@
             <RowDefinition></RowDefinition>
             <RowDefinition></RowDefinition>
             <RowDefinition></RowDefinition>
+            <RowDefinition></RowDefinition>
 
             <RowDefinition></RowDefinition>
         
         </Grid.RowDefinitions>
         <Label Name="lblPath"></Label>
-        <TextBox Grid.Row="1" Name="tbInput"></TextBox>
+        <TextBox Grid.Row="1" Name="tbInput" Text="QWE"></TextBox>
         <Button Grid.Row="2" Click="Button_Click">Open</Button>
         <Button Grid.Row="3" Click="Button_Click_1">Enocode</Button>
         <Button Grid.Row="4" Click="Button_Click_2">Decipher</Button>
+        <ProgressBar Name="Bar" Grid.Row="5"></ProgressBar>
 
     </Grid>
 </Window>

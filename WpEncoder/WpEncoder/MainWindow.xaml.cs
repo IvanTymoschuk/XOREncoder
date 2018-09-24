@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -23,11 +24,11 @@ namespace WpEncoder
     /// </summary>
     public partial class MainWindow : Window
     {
-        string code;
+       
         public MainWindow()
         {
             InitializeComponent();
-            code = tbInput.Text;
+            token = cancelTokenSource.Token;
         }
         string FileIn;
         string FileOut;
@@ -39,12 +40,13 @@ namespace WpEncoder
             FileIn = File.ReadAllText(openFile.FileName);
             lblPath.Content = openFile.FileName;
         }
-        
+        CancellationTokenSource cancelTokenSource = new CancellationTokenSource();
+        private CancellationToken token;
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
            var tsk = new Task(EncFunc);
             tsk.Start();
-            tsk.Wait();
+         
            
 
            
@@ -54,17 +56,40 @@ namespace WpEncoder
         public void EncFunc()
         {
            
-            int counter = 0;
-            for (int i = 0; i < FileIn.Length-1; i++)
-            {
-                FileOut += Convert.ToChar(FileIn[i] ^ code[counter]);
-                if (counter == code.Length - 1)
-                    counter = 0;
-                else
-                    counter++;
+            
 
-            }
-            MessageBox.Show(FileOut);
+
+            int counter = 0;
+            string code=null;
+            this.Dispatcher.Invoke(()=>
+            {
+                     code = tbInput.Text;
+                    
+             
+
+                for (int i = 0; i < FileIn.Length - 1; i++)
+                {
+
+                    if (token.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
+                    FileOut += Convert.ToChar(FileIn[i] ^ code[counter]);
+                    if (counter == code.Length - 1)
+                    {
+                        counter = 0;
+                      
+                    }
+                    else
+                    
+                        counter++;
+                        
+                    
+                }
+            });
+            
+           
             string path = openFile.FileName.Remove(openFile.FileName.Length - 4, 4) + "(Encode).txt";
 
             using (StreamWriter sw = new StreamWriter(path, false, Encoding.Default))
@@ -72,7 +97,7 @@ namespace WpEncoder
                 sw.WriteLine(FileOut);
             }
             Process.Start(path);
-           // FileOut = null;
+           FileOut = null;
 
         }
 
@@ -80,6 +105,11 @@ namespace WpEncoder
         {
 
             int counter = 0;
+            string code = null;
+            this.Dispatcher.Invoke(() =>
+            {
+                code = tbInput.Text;
+            });
             for (int i = 0; i < FileIn.Length; i++)
             {
                 FileOut += Convert.ToChar(FileIn[i] ^ code[counter]);
@@ -95,16 +125,17 @@ namespace WpEncoder
                 sw.WriteLine(FileOut);
             }
             Process.Start(path);
-           // FileOut = null;
+            FileOut = null;
 
         }
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-           
-          var tsk = new Task(DEncFunc);
-            tsk.Start();
+            cancelTokenSource.Cancel();
 
-          
+            //var tsk = new Task(DEncFunc);
+            //  tsk.Start();
+
+
         }
     }
 }
